@@ -5,29 +5,41 @@ import HeaderCell from './headerCell';
 class Header extends PureComponent {
   constructor(props) {
     super(props);
-    this.sortingProps = {
-      sorting: false,
-      onSorting: null
-    };
+    this.sortHandler = this.sortHandler.bind(this);
   }
 
   getSortingProps() {
-    return this.props.sorting ? {
-      sorting: this.props.sorting,
-      onSorting: this.props.onSorting
+    return this.props.sortingEnabled ? {
+      sortingOption: this.props.sortingOption,
     } : null;
+  }
+
+  getSortingEvents() {
+    return this.props.sortingEnabled ? {
+      onClick: this.sortHandler
+    } : null;
+  }
+
+  sortHandler(e) {
+    let field = e.target.dataset.field;
+    if (field) {
+      e.stopPropagation();
+      this.props.onSorting(field);
+    }
   }
 
   render() {
     return (
       <thead>
-      <tr>
-        {this.props.headers.map(header => <HeaderCell
-          key={header.toLowerCase()}
-          title={header}
-          {...this.getSortingProps()}/>
-        )}
-      </tr>
+        <tr {...this.getSortingEvents()}>
+          {
+            this.props.headers.map( (header, index) => <HeaderCell
+            key={header.toLowerCase()}
+            headerName={header}
+            fieldName={this.props.fields[index]}
+            {...this.getSortingProps()}/>)
+          }
+        </tr>
       </thead>
     );
   }
@@ -35,12 +47,9 @@ class Header extends PureComponent {
 
 Header.propTypes = {
   headers: PropTypes.arrayOf(PropTypes.string),
-  sorting: PropTypes.bool,
-  onSorting: PropTypes.func
-};
-
-Header.defaultProps = {
-  sorting: true
+  fields: PropTypes.arrayOf(PropTypes.string),
+  onSorting: PropTypes.func,
+  sortingOption: PropTypes.object
 };
 
 export default Header;

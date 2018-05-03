@@ -15,12 +15,14 @@ class CompoundSorting extends Component {
   }
 
   render() {
-    if (!this.props.sortFields.length) return null;
+    let sortingFields = Object.keys(this.props.sortingOptions);
+    if (!sortingFields.length) return null;
     return (
       <ul onClick={this.removeSortingByField} className="smart-grid_sorting">
-        {this.props.sortFields.map(sort => <li key={sort.field} className={sort.asc}>
-          {sort.field}
-          <button data-field={sort.field} className={SORTING_BADGE_CLASS}>x</button>
+        {sortingFields.map(property => <li key={property}
+                                           className={this.props.sortingOptions[property] === 1 ? 'asc': 'desc'}>
+          {property}
+          <button data-field={property} className={SORTING_BADGE_CLASS}>x</button>
         </li>)}
       </ul>
     );
@@ -28,10 +30,7 @@ class CompoundSorting extends Component {
 }
 
 CompoundSorting.propTypes = {
-  sortFields: PropTypes.arrayOf(PropTypes.shape({
-    field: PropTypes.string.isRequired,
-    asc: PropTypes.string.isRequired
-  })).isRequired,
+  sortingOptions: PropTypes.object.isRequired,
   onRemove: PropTypes.func.isRequired
 };
 

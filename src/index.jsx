@@ -25,7 +25,7 @@ class SmartGrid extends PureComponent {
       loading: false,
       currentPage: 0,
       pageCount: 0,
-      sortedFields: []
+      sortingOptions: {}
     };
 
     this.data = props.data || [];
@@ -37,8 +37,8 @@ class SmartGrid extends PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.sorting && this.state.sortedFields.length) {
-      this.setState({sortedFields: []});
+    if (!nextProps.sorting && Object.keys(this.state.sortingOptions).length) {
+      this.setState({sortingOptions: {}});
     }
   }
 
@@ -74,27 +74,15 @@ class SmartGrid extends PureComponent {
     this.initPage(this.data, e.selected);
   }
 
-  sortBy(title, asc) {
-    let index = this.props.headers.indexOf(title);
-    if (index > -1) {
-      let field = this.props.fields[index];
-      if (this.props.sorting === SORTING.SIMPLE) {
-        this.setState({
-          sortedFields: [{field, asc}]
-        });
-        this.initPage(SortingService.sortByField(this.data, {field, asc}));
-      } else {
-        this.setState({
-          sortedFields: SortingService.addToSorting(this.state.sortedFields, {field, asc})
-        });
-        this.initPage(SortingService.compoundSort(this.data, this.state.sortedFields));
-      }
-    }
+  sortBy(field) {
+    let sortingOptions = SortingService.addToSorting(this.state.sortingOptions, field);
+    this.setState({sortingOptions});
+    this.initPage(SortingService.sort(this.props.sorting, this.data, sortingOptions));
   }
 
   removeSortingByField(field) {
     this.setState({
-      sortedFields: SortingService.removeFromSorting(this.state.sortedFields, field)
+      sortingOptions: SortingService.removeFromSorting(this.state.sortingOptions, field)
     });
     this.initPage(this.data);
   }
@@ -103,12 +91,14 @@ class SmartGrid extends PureComponent {
     if (!this.state.displayData) return null;
     return (
       <div className="smart-grid">
-        <CompoundSorting sortFields={this.state.sortedFields} onRemove={this.removeSortingByField}/>
+        <CompoundSorting sortingOptions={this.state.sortingOptions} onRemove={this.removeSortingByField}/>
         <table>
-          <Header headers={this.props.headers} sorting={!!this.props.sorting} onSorting={this.sortBy}/>
-          <tbody>
-          {this._showRecords()}
-          </tbody>
+          <Header headers={this.props.headers}
+                  fields={this.props.fields}
+                  sortingEnabled={!!this.props.sorting}
+                  sortingOption={this.state.sortingOptions}
+                  onSorting={this.sortBy}/>
+          <tbody>{this._showRecords()}</tbody>
         </table>
         <div className="smart-grid_footer">
           <ReactPaginate previousLabel={"<"}
@@ -135,7 +125,7 @@ SmartGrid.propTypes = {
   headers: PropTypes.arrayOf(PropTypes.string),
   fields: PropTypes.arrayOf(PropTypes.string),
   idField: PropTypes.string.isRequired,
-  sorting: PropTypes.oneOfType([PropTypes.bool, PropTypes.string])
+  sorting: PropTypes.oneOf([false, true, SORTING.SIMPLE, SORTING.COMPOUND])
 };
 
 SmartGrid.defaultProps = {

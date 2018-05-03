@@ -4,38 +4,28 @@ import PropTypes from 'prop-types';
 class HeaderCell extends PureComponent {
   constructor(props) {
     super(props);
-    this.sortHandler = this.sortHandler.bind(this);
-    this.state = {
-      sortingOrder: ''
-    };
+    this.getSortingClass = this.getSortingClass.bind(this);
   }
 
-  sortHandler() {
-    let newOrder = this.state.sortingOrder === 'asc' ? 'desc' : 'asc';
-    this.setState({sortingOrder: newOrder});
-    this.props.onSorting(this.props.title, newOrder);
-  }
-
-  getSortingProps() {
-    return this.props.sorting ? {
-      className: `sorting ${this.state.sortingOrder}`,
-      onClick: this.sortHandler
-    } : null;
+  getSortingClass() {
+    let {sortingOption, fieldName} = this.props;
+    if (!sortingOption || !sortingOption.hasOwnProperty(fieldName)) return '';
+    else return sortingOption[fieldName] === 1 ? 'asc' : 'desc';
   }
 
   render() {
     return (
-      <th {...this.getSortingProps()}>
-        {this.props.title}
+      <th data-field={this.props.fieldName} className={`sorting ${this.getSortingClass()}`}>
+        {this.props.headerName}
       </th>
     );
   }
 }
 
 HeaderCell.propTypes = {
-  title: PropTypes.string.isRequired,
-  sorting: PropTypes.bool,
-  onSorting: PropTypes.func
+  headerName: PropTypes.string.isRequired,
+  fieldName: PropTypes.string.isRequired,
+  sortingOption: PropTypes.object
 };
 
 export default HeaderCell;

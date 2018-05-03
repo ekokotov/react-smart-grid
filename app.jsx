@@ -19,7 +19,7 @@ class App extends Component {
   render() {
     return (
       <div>
-        <button onClick={() => this.setState({sortingEnabled: !this.state.sortingEnabled})}>sortingEnabled</button>
+        {/*<button onClick={() => this.setState({sortingEnabled: !this.state.sortingEnabled})}>sortingEnabled</button>*/}
         <br/>
         <br/>
         <SmartGrid url="https://next.json-generator.com/api/json/get/VyffA6MhV"
@@ -34,7 +34,7 @@ class App extends Component {
                    headers={['Name', 'Age']}
                    fields={['name', 'age']}
                    idField="_id"
-                   sorting={'simple'}/>
+                   sorting={false}/>
       </div>
     )
   }

@@ -1,23 +1,22 @@
+import {SORTING} from "../util/const";
+
 class SortingService {
-  addToSorting(sortingArray, sortOptions) {
-    let found = false;
-    for (let i = 0; i < sortingArray.length; i++) {
-      if (sortOptions.field === sortingArray[i].field) {
-        sortingArray[i] = sortOptions;
-        found = true;
-        break;
-      }
-    }
-    if (!found) sortingArray.push(sortOptions);
-    return sortingArray;
+  addToSorting(sortingOptions, field) {
+    let asc = sortingOptions.hasOwnProperty(field) ? (sortingOptions[field] === 1 ? -1 : 1) : 1;
+    return {
+      ...sortingOptions,
+      [field]: asc
+    };
   }
 
-  removeFromSorting(sortingArray, field) {
-    return sortingArray.filter(item => item.field !== field);
+  removeFromSorting(sortingOptions, field) {
+    const {[field]: deletedKey, ...otherKeys} = sortingOptions;
+    return otherKeys;
   }
 
-  sortByField(sortingArray, {field, asc}) {
-    let isAsc = asc === 'asc';
+  sortByField(sortingArray, options) {
+    let [field, asc] = Object.entries(options)[0];
+    let isAsc = asc === 1;
     return sortingArray.sort((x, y) => {
       if (x[field] === y[field]) return 0;
       return x[field] > y[field] ? (isAsc ? 1 : -1) : (isAsc ? -1 : 1);
@@ -25,10 +24,10 @@ class SortingService {
   }
 
   _fieldSorter(sortingPredicate) {
-    let sortingOptions = sortingPredicate.map(o => {
+    let sortingOptions = Object.keys(sortingPredicate).map(key => {
       return {
-        asc: o.asc === 'asc' || o.asc === 1 ? 1 : -1,
-        field: o.field
+        asc: sortingPredicate[key] === 1 ? 1 : -1,
+        field: key
       };
     });
     return (a, b) => {
@@ -43,8 +42,16 @@ class SortingService {
     };
   }
 
-  compoundSort(sortingArray, sortingPredicate) {
-    return sortingArray.sort(this._fieldSorter(sortingPredicate));
+  compoundSort(sortingArray, sortingOptions) {
+    return sortingArray.sort(this._fieldSorter(sortingOptions));
+  }
+
+  sort(type, data, sortingOptions) {
+    if (type === SORTING.SIMPLE) {
+      return this.sortByField(data, sortingOptions);
+    } else {
+      return this.compoundSort(data, sortingOptions);
+    }
   }
 }
 
