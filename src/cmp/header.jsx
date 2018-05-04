@@ -10,7 +10,7 @@ class Header extends PureComponent {
 
   getSortingProps() {
     return this.props.sortingEnabled ? {
-      sortingOption: this.props.sortingOption,
+      sortingOptions: this.props.sortingOptions,
     } : null;
   }
 
@@ -31,15 +31,15 @@ class Header extends PureComponent {
   render() {
     return (
       <thead>
-        <tr {...this.getSortingEvents()}>
-          {
-            this.props.headers.map( (header, index) => <HeaderCell
+      <tr {...this.getSortingEvents()}>
+        {
+          this.props.headers.map((header, index) => <HeaderCell
             key={header.toLowerCase()}
             headerName={header}
             fieldName={this.props.fields[index]}
             {...this.getSortingProps()}/>)
-          }
-        </tr>
+        }
+      </tr>
       </thead>
     );
   }
@@ -49,7 +49,7 @@ Header.propTypes = {
   headers: PropTypes.arrayOf(PropTypes.string),
   fields: PropTypes.arrayOf(PropTypes.string),
   onSorting: PropTypes.func,
-  sortingOption: PropTypes.object
+  sortingOptions: PropTypes.object
 };
 
 export default Header;

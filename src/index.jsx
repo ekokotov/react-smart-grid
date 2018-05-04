@@ -7,14 +7,18 @@ import {load} from './service/httpService';
 import Header from './cmp/header';
 import Row from './cmp/row';
 import Loading from './cmp/loading';
-import './index.scss';
 import CompoundSorting from "./cmp/sorting";
 import SortingService from './service/sortingService';
+import PagingService from './service/pagingService';
+import DataAggregator from './service/dataAggregator';
 import {SORTING} from './util/const';
+
+import './index.scss';
 
 class SmartGrid extends PureComponent {
   constructor(props) {
     super(props);
+
     this.handlePageClick = this.handlePageClick.bind(this);
     this.initPage = this.initPage.bind(this);
     this.sortBy = this.sortBy.bind(this);
@@ -23,41 +27,56 @@ class SmartGrid extends PureComponent {
     this.state = {
       displayData: [],
       loading: false,
-      currentPage: 0,
       pageCount: 0,
       sortingOptions: {}
     };
 
     this.data = props.data || [];
+    this._dataAggregator = new DataAggregator();
   }
 
-  componentDidMount() {
+  registerDataPipes() {
+    if (this.props.sorting) {
+      this._sorting = new SortingService({type: this.props.sorting});
+      this._dataAggregator.registerPipe(this._sorting.sort);
+    }
+    if (this.props.pageSize) {
+      this._paging = new PagingService({pageSize: this.props.pageSize});
+      this._dataAggregator.registerPipe(this._paging.showPage);
+    }
+  }
+
+  componentWillMount() {
+    this.registerDataPipes();
     if (this.props.url) this.loadXHRData();
-    if (this.props.data && this.props.data.length) this.initPage(this.props.data);
+    else if (this.props.data && this.props.data.length) this.initPage();
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.sorting && Object.keys(this.state.sortingOptions).length) {
-      this.setState({sortingOptions: {}});
+    if (!nextProps.sorting && Object.keys(this.state.sortingOptions).length) this.setState({sortingOptions: {}});
+    if (nextProps.sorting !== this.props.sorting) this._sorting.sortingType = nextProps.sorting;
+    if (nextProps.pageSize !== this.props.pageSize) {
+      this._paging.pageSize = nextProps.pageSize;
+      this.setState({pageCount: 0});
+      this.initPage();
     }
   }
 
   loadXHRData() {
     this.setState({loading: true});
     return load(this.props.url)
-      .then(this.initPage)
-      .catch(console.error)
+      .then(data => {
+        this.data = data;
+        this.initPage();
+      })
+      .catch(console.error);
   }
 
-  initPage(data, selectedPage) {
-    let page = typeof selectedPage !== 'undefined' ? selectedPage : this.state.currentPage,
-      startPage = this.props.limit * page;
-    this.data = data;
+  initPage() {
     this.setState({
-      currentPage: page,
-      displayData: data.slice(startPage, startPage + this.props.limit),
+      displayData: this._dataAggregator.process(this.data),
       loading: false,
-      pageCount: Math.round(data.length / this.props.limit)
+      pageCount: this._paging.pageCount
     })
   }
 
@@ -71,20 +90,31 @@ class SmartGrid extends PureComponent {
   }
 
   handlePageClick(e) {
-    this.initPage(this.data, e.selected);
+    this._paging.currentPage = e.selected;
+    this.initPage();
   }
 
   sortBy(field) {
-    let sortingOptions = SortingService.addToSorting(this.state.sortingOptions, field);
-    this.setState({sortingOptions});
-    this.initPage(SortingService.sort(this.props.sorting, this.data, sortingOptions));
+    this.setState({sortingOptions: this._sorting.addToSorting(field)});
+    this.initPage();
   }
 
   removeSortingByField(field) {
-    this.setState({
-      sortingOptions: SortingService.removeFromSorting(this.state.sortingOptions, field)
-    });
-    this.initPage(this.data);
+    this.setState({sortingOptions: this._sorting.removeFromSorting(field)});
+    this.initPage();
+  }
+
+  showPagination() {
+    if (this.data.length === this.props.pageSize) return null;
+    return <ReactPaginate previousLabel={"<"}
+                          nextLabel={">"}
+                          breakLabel='...'
+                          breakClassName={"break-me"}
+                          pageCount={this.state.pageCount}
+                          pageRangeDisplayed={5}
+                          onPageChange={this.handlePageClick}
+                          containerClassName={"smart-grid_pagination"}
+                          activeClassName={"active"}/>
   }
 
   render() {
@@ -96,21 +126,12 @@ class SmartGrid extends PureComponent {
           <Header headers={this.props.headers}
                   fields={this.props.fields}
                   sortingEnabled={!!this.props.sorting}
-                  sortingOption={this.state.sortingOptions}
+                  sortingOptions={this.state.sortingOptions}
                   onSorting={this.sortBy}/>
           <tbody>{this._showRecords()}</tbody>
         </table>
         <div className="smart-grid_footer">
-          <ReactPaginate previousLabel={"<"}
-                         nextLabel={">"}
-                         breakLabel='...'
-                         breakClassName={"break-me"}
-                         pageCount={this.state.pageCount}
-                         pageRangeDisplayed={5}
-                         onPageChange={this.handlePageClick}
-                         containerClassName={"smart-grid_pagination"}
-                         activeClassName={"active"}/>
-
+          {this.showPagination()}
           <span className="smart-grid_counts">{this.data.length}</span>
         </div>
       </div>
@@ -121,7 +142,7 @@ class SmartGrid extends PureComponent {
 SmartGrid.propTypes = {
   url: PropTypes.string,
   data: PropTypes.array,
-  limit: PropTypes.number,
+  pageSize: PropTypes.number,
   headers: PropTypes.arrayOf(PropTypes.string),
   fields: PropTypes.arrayOf(PropTypes.string),
   idField: PropTypes.string.isRequired,
@@ -129,7 +150,7 @@ SmartGrid.propTypes = {
 };
 
 SmartGrid.defaultProps = {
-  limit: 10,
+  pageSize: 10,
   idField: '_id',
   sorting: true
 };

@@ -8,9 +8,9 @@ class HeaderCell extends PureComponent {
   }
 
   getSortingClass() {
-    let {sortingOption, fieldName} = this.props;
-    if (!sortingOption || !sortingOption.hasOwnProperty(fieldName)) return '';
-    else return sortingOption[fieldName] === 1 ? 'asc' : 'desc';
+    let {sortingOptions, fieldName} = this.props;
+    if (!sortingOptions || !sortingOptions.hasOwnProperty(fieldName)) return '';
+    else return sortingOptions[fieldName] === 1 ? 'asc' : 'desc';
   }
 
   render() {
@@ -25,7 +25,7 @@ class HeaderCell extends PureComponent {
 HeaderCell.propTypes = {
   headerName: PropTypes.string.isRequired,
   fieldName: PropTypes.string.isRequired,
-  sortingOption: PropTypes.object
+  sortingOptions: PropTypes.object
 };
 
 export default HeaderCell;
