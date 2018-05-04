@@ -20,17 +20,17 @@ class SmartGrid extends PureComponent {
     super(props);
 
     this.handlePageClick = this.handlePageClick.bind(this);
-    this.initPage = this.initPage.bind(this);
+    this.hideProgress = this.hideProgress.bind(this);
     this.sortBy = this.sortBy.bind(this);
     this.removeSortingByField = this.removeSortingByField.bind(this);
 
     this.state = {
-      displayData: [],
       loading: false,
-      pageCount: 0,
+      currentPage: 0,
       sortingOptions: {}
     };
 
+    this.displayData = [];
     this.data = props.data || [];
     this._dataAggregator = new DataAggregator();
   }
@@ -49,7 +49,6 @@ class SmartGrid extends PureComponent {
   componentWillMount() {
     this.registerDataPipes();
     if (this.props.url) this.loadXHRData();
-    else if (this.props.data && this.props.data.length) this.initPage();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -57,8 +56,7 @@ class SmartGrid extends PureComponent {
     if (nextProps.sorting !== this.props.sorting) this._sorting.sortingType = nextProps.sorting;
     if (nextProps.pageSize !== this.props.pageSize) {
       this._paging.pageSize = nextProps.pageSize;
-      this.setState({pageCount: 0});
-      this.initPage();
+      this.setState({currentPage: 0});
     }
   }
 
@@ -67,41 +65,32 @@ class SmartGrid extends PureComponent {
     return load(this.props.url)
       .then(data => {
         this.data = data;
-        this.initPage();
+        this.hideProgress();
       })
       .catch(console.error);
   }
 
-  initPage() {
-    this.setState({
-      displayData: this._dataAggregator.process(this.data),
-      loading: false,
-      pageCount: this._paging.pageCount
-    })
+  hideProgress() {
+    this.setState({loading: false});
   }
 
   _showRecords() {
-    if (this.state.loading) {
-      return <Loading colspan={this.props.fields.length}/>;
-    } else return this.state.displayData.map(record =>
-      <Row key={record[this.props.idField]}
-           data={record}
-           fields={this.props.fields}/>)
+    if (this.state.loading) return <Loading colspan={this.props.fields.length}/>;
+    return this.displayData.map(record => <Row key={record[this.props.idField]}
+                                               data={record}
+                                               fields={this.props.fields}/>)
   }
 
   handlePageClick(e) {
-    this._paging.currentPage = e.selected;
-    this.initPage();
+    this.setState({currentPage: this._paging.currentPage = e.selected});
   }
 
   sortBy(field) {
     this.setState({sortingOptions: this._sorting.addToSorting(field)});
-    this.initPage();
   }
 
   removeSortingByField(field) {
     this.setState({sortingOptions: this._sorting.removeFromSorting(field)});
-    this.initPage();
   }
 
   showPagination() {
@@ -110,7 +99,7 @@ class SmartGrid extends PureComponent {
                           nextLabel={">"}
                           breakLabel='...'
                           breakClassName={"break-me"}
-                          pageCount={this.state.pageCount}
+                          pageCount={this._paging.pageCount}
                           pageRangeDisplayed={5}
                           onPageChange={this.handlePageClick}
                           containerClassName={"smart-grid_pagination"}
@@ -118,7 +107,8 @@ class SmartGrid extends PureComponent {
   }
 
   render() {
-    if (!this.state.displayData) return null;
+    if (!this.data) return null;
+    this.displayData = this._dataAggregator.process(this.data);
     return (
       <div className="smart-grid">
         <CompoundSorting sortingOptions={this.state.sortingOptions} onRemove={this.removeSortingByField}/>

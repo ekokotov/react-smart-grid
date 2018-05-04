@@ -49,7 +49,8 @@ Header.propTypes = {
   headers: PropTypes.arrayOf(PropTypes.string),
   fields: PropTypes.arrayOf(PropTypes.string),
   onSorting: PropTypes.func,
-  sortingOptions: PropTypes.object
+  sortingOptions: PropTypes.object,
+  sortingEnabled: PropTypes.bool
 };
 
 export default Header;
