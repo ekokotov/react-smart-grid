@@ -2,6 +2,7 @@
 I try to implement object-table with React
 
 Features:
-- sorting (compound and simple)
-- paging
+- sorting (compound -> by multiple fields and simple)
+- pagination
 - load from url
+- global search

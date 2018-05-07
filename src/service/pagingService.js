@@ -1,3 +1,4 @@
+import {formatDataWithLength} from '../util/helpers'
 class PagingService {
 
   constructor(props) {
@@ -5,14 +6,15 @@ class PagingService {
     this.currentPage = props.page || 0;
     this.pageCount = 0;
 
-    this.showPage = this.showPage.bind(this);
+    this.process = this.process.bind(this);
   }
 
-  showPage(_data) {
-    if (!_data.length || !this.pageSize) return _data;
+  process({data}) {
+    let dataLength = data.length;
+    if (!dataLength || !this.pageSize) return formatDataWithLength(data);
     let startPage = this.pageSize * this._currentPage;
-    this.pageCount = Math.round(_data.length / this.pageSize);
-    return _data.slice(startPage, startPage + this.pageSize);
+    this.pageCount = Math.round(data.length / this.pageSize);
+    return formatDataWithLength(data.slice(startPage, startPage + this.pageSize), dataLength);
   }
 
   set currentPage(nextPage) {

@@ -1,18 +1,18 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 
-class Loading extends PureComponent {
+class HelpRow extends PureComponent {
   render() {
     return (
       <tr>
-        <td className="loading" colSpan={this.props.colspan}>LOADING....</td>
+        <td className="loading" colSpan={this.props.colspan}>{this.props.children}</td>
       </tr>
     );
   }
 }
 
-Loading.propTypes = {
+HelpRow.propTypes = {
   colspan: PropTypes.number.isRequired
 };
 
-export default Loading;
+export default HelpRow;

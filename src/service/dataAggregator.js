@@ -4,8 +4,9 @@ export default class DataAggregator {
     this.composeHandlers = () => this._handlers.reduce(this._pipe)
   }
 
-  registerPipe(func) {
-    this._handlers.push(func);
+  registerPipe(service) {
+    if (typeof service.process !== 'function') throw new Error('Internal Error. Every filter service should have "process" method.');
+    this._handlers.push(service.process);
   }
 
   _pipe(f, g) {

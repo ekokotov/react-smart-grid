@@ -13,30 +13,36 @@ class App extends Component {
         {_id: 3, name: 'pavel', age: 21},
       ],
       sortingEnabled: true,
-      pageSize: 2
+      pageSize: 2,
+      search: true
     };
   }
 
   render() {
     return (
       <div>
-        <button onClick={() => this.setState({sortingEnabled: false})}>sortingEnabled</button>
-        <button onClick={() => this.setState({pageSize: 3})}>pageSize</button>
+        <button onClick={() => this.setState({sortingEnabled: !this.state.sortingEnabled})}>sortingEnabled</button>
+        <button onClick={() => this.setState({pageSize: 0})}>pageSize</button>
+        <button onClick={() => this.setState({search: !this.state.search})}>search</button>
         <br/>
         <br/>
         <SmartGrid url="https://next.json-generator.com/api/json/get/VyffA6MhV"
-                   pageSize={6}
+                   pageSize={5}
                    headers={['Name', 'Age', 'Eyes', 'Phone', 'Favorite fruit']}
                    fields={['name', 'age', 'eyeColor', 'phone', 'favoriteFruit']}
                    idField="_id"
-                   sorting={'compound'}/>
+                   sorting={'compound'}
+                   search={this.state.search}
+        />
 
         <SmartGrid data={this.state.users}
                    pageSize={2}
                    headers={['Name', 'Age']}
                    fields={['name', 'age']}
                    idField="_id"
-                   sorting={this.state.sortingEnabled}/>
+                   sorting={this.state.sortingEnabled}
+                   search={this.state.search}
+        />
       </div>
     )
   }

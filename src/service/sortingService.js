@@ -1,4 +1,5 @@
 import {SORTING} from "../util/const";
+import {formatDataWithLength} from "../util/helpers";
 
 class SortingService {
 
@@ -6,7 +7,9 @@ class SortingService {
     this.sortingType = props.type;
     this.options = props.options || {};
 
-    this.sort = this.sort.bind(this);
+    this.process = this.process.bind(this);
+    this.sortByField = this.sortByField.bind(this);
+    this.compoundSort = this.compoundSort.bind(this);
   }
 
   set sortingType(type) {
@@ -65,12 +68,9 @@ class SortingService {
     return sortingArray.concat().sort(this._fieldSorter());
   }
 
-  sort(data) {
-    if (this._sortingType === SORTING.SIMPLE) {
-      return this.sortByField(data);
-    } else {
-      return this.compoundSort(data);
-    }
+  process({data}) {
+    let sortMethod = this._sortingType === SORTING.SIMPLE ? this.sortByField : this.compoundSort;
+    return formatDataWithLength(sortMethod(data));
   }
 }
 
