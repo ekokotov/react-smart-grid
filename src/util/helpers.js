@@ -1,10 +1,12 @@
-export const debounce = (fn, delay) => {
-  let timer = null;
-  return () => {
-    let context = this, args = arguments;
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(context, args), delay);
-  };
+export const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait)
+  }
 };
 
-export const formatDataWithLength = (_data, allCounts) => ({data:_data, count: allCounts || (_data ? _data.length : 0)});
+export const formatDataWithLength = (_data, allCounts) => ({
+  data: _data,
+  count: allCounts || (_data ? _data.length : 0)
+});

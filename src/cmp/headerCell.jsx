@@ -9,8 +9,7 @@ class HeaderCell extends PureComponent {
 
   getSortingClass() {
     let {sortingOptions, fieldName} = this.props;
-    if (!sortingOptions || !sortingOptions.hasOwnProperty(fieldName)) return '';
-    else return sortingOptions[fieldName] === 1 ? 'asc' : 'desc';
+    if (sortingOptions && sortingOptions.hasOwnProperty(fieldName)) return sortingOptions[fieldName] === 1 ? 'asc' : 'desc';
   }
 
   render() {

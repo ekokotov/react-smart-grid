@@ -1,9 +1,9 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 
 const SORTING_BADGE_CLASS = 'sorting_remove';
 
-class CompoundSorting extends Component {
+class CompoundSorting extends PureComponent {
   constructor(props) {
     super(props);
     this.removeSortingByField = this.removeSortingByField.bind(this);

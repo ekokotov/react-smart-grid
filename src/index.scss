@@ -1,3 +1,7 @@
+$border_color: #cdcdcd;
+$th_back_color: #e6f1f6;
+$active_color: #d7f1a0;
+
 @mixin sorting {
   cursor: pointer;
   background-repeat: no-repeat;
@@ -16,16 +20,26 @@
     border-collapse: collapse;
 
     th, td {
-      border: 1px solid lightgray;
-      padding: 4px 6px;
+      border: 1px solid $border_color;
+      padding: 6px 8px;
       &.loading {
         text-align: center;
       }
     }
-    th {
-      font-weight: bold;
-      &.sorting {
-        @include sorting;
+    thead tr {
+      background-color: $th_back_color;
+
+      th {
+        font-weight: bold;
+        &.sorting {
+          @include sorting;
+        }
+      }
+    }
+    tbody tr {
+      cursor: pointer;
+      &.smart-grid__row--selected {
+        background-color: $active_color;
       }
     }
   }
@@ -42,11 +56,11 @@
       list-style: none;
       li {
         display: inline-block;
-        border: 1px solid blueviolet;
+        border: 1px solid $border_color;
         margin-left: 10px;
         cursor: pointer;
         &.active {
-          border-color: palevioletred;
+          border-color: $active_color;
         }
         & > a {
           padding: 3px 4px;
@@ -79,7 +93,7 @@
       padding: 0;
       li {
         padding: 3px 5px;
-        border: 1px solid palevioletred;
+        border: 1px solid $active_color;
         display: inline-block;
         border-radius: 5px;
         padding-left: 25px;

@@ -26,13 +26,14 @@ class App extends Component {
         <button onClick={() => this.setState({search: !this.state.search})}>search</button>
         <br/>
         <br/>
-        <SmartGrid url="https://next.json-generator.com/api/json/get/VyffA6MhV"
+        <SmartGrid url="https://next.json-generator.com/api/json/get/4k6xmJ21r"
                    pageSize={5}
                    headers={['Name', 'Age', 'Eyes', 'Phone', 'Favorite fruit']}
                    fields={['name', 'age', 'eyeColor', 'phone', 'favoriteFruit']}
                    idField="_id"
                    sorting={'compound'}
-                   search={this.state.search}
+                   search={'global'}
+                   onSelect={data => console.log(data)}
         />
 
         <SmartGrid data={this.state.users}
@@ -41,7 +42,7 @@ class App extends Component {
                    fields={['name', 'age']}
                    idField="_id"
                    sorting={this.state.sortingEnabled}
-                   search={this.state.search}
+                   search={['name', 'age']}
         />
       </div>
     )

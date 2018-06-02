@@ -13,7 +13,7 @@ import SearchService from './service/searchService';
 import PagingService from './service/pagingService';
 import DataAggregator from './service/dataAggregator';
 import SearchInput from './cmp/searchInput';
-import {SORTING} from './util/const';
+import {SORTING, SEARCH} from './util/const';
 
 import './index.scss';
 
@@ -22,26 +22,30 @@ class SmartGrid extends PureComponent {
     super(props);
 
     this.handlePageClick = this.handlePageClick.bind(this);
-    this.hideProgress = this.hideProgress.bind(this);
     this.sortBy = this.sortBy.bind(this);
     this.removeSortingByField = this.removeSortingByField.bind(this);
     this.onSearch = this.onSearch.bind(this);
+    this.onColumnSearch = this.onColumnSearch.bind(this);
+    this.setSelected = this.setSelected.bind(this);
 
     this.state = {
       loading: false,
       currentPage: 0,
       sortingOptions: {},
-      globalSearch: null
+      globalSearchStr: null
     };
 
-    this.displayData = [];
     this.data = props.data || [];
     this._dataAggregator = new DataAggregator();
   }
 
   registerDataPipes() {
     if (this.props.search) {
-      this._dataAggregator.registerPipe(this._search = new SearchService({fields: this.props.fields}));
+      const isGlobalSearch = this.props.search === SEARCH.GLOBAL || this.props.search === true;
+      let searchFields = isGlobalSearch ? this.props.fields : this.props.search;
+      this._dataAggregator.registerPipe(
+        this._search = new SearchService({fields: searchFields, global: isGlobalSearch})
+      );
     }
     if (this.props.sorting) {
       this._dataAggregator.registerPipe(this._sorting = new SortingService({type: this.props.sorting}));
@@ -70,20 +74,23 @@ class SmartGrid extends PureComponent {
     return load(this.props.url)
       .then(data => {
         this.data = data;
-        this.hideProgress();
+        this.setState({loading: false});
       })
       .catch(console.error);
   }
 
-  hideProgress() {
-    this.setState({loading: false});
+  setSelected(selectedRecord) {
+    this.setState({selectedId: selectedRecord[this.props.idField]});
+    if (this.props.onSelect) this.props.onSelect(selectedRecord)
   }
 
   _showRecords(_data) {
     if (this.state.loading) return <HelpRow colspan={this.props.fields.length}>Loading...</HelpRow>;
-    if (!this.state.loading && !_data.length) return <HelpRow colspan={this.props.fields.length}>
-      No such data</HelpRow>;
-    return _data.map(record => <Row key={record[this.props.idField]}
+    if (!this.state.loading && !_data.length) return <HelpRow colspan={this.props.fields.length}>No such data</HelpRow>;
+    return _data.map(record => <Row onSelect={this.setSelected}
+                                    key={record[this.props.idField]}
+                                    recordId={record[this.props.idField]}
+                                    selectedRecord={this.state.selectedId}
                                     data={record}
                                     fields={this.props.fields}/>)
   }
@@ -101,7 +108,12 @@ class SmartGrid extends PureComponent {
   }
 
   onSearch({search}) {
-    this.setState({globalSearch: this._search.searchStr = search});
+    this.setState({globalSearchStr: this._search.searchStr = search});
+  }
+
+  onColumnSearch(search) {
+    this._search.mergeSearchOptions(search);
+    this.setState({searchOptions: this._search.columnSearchOptions});
   }
 
   showPagination() {
@@ -117,6 +129,19 @@ class SmartGrid extends PureComponent {
                           activeClassName={"active"}/>
   }
 
+  getSearchOptions() {
+    if (Array.isArray(this.props.search)) {
+      return {
+        searchOptions: this.props.search,
+        onColumnSearch: this.onColumnSearch
+      }
+    } else {
+      return {
+        searchOptions: []
+      }
+    }
+  }
+
   render() {
     if (!this.data) return null;
     let {data, count} = this._dataAggregator.process({data: this.data});
@@ -124,14 +149,16 @@ class SmartGrid extends PureComponent {
       <div className="smart-grid">
         <div className="smart-grid_sorting-search">
           <CompoundSorting sortingOptions={this.state.sortingOptions} onRemove={this.removeSortingByField}/>
-          {this.props.search && <SearchInput onSearch={this.onSearch}/>}
+          {this.props.search && this._search.global && <SearchInput onSearch={this.onSearch}/>}
         </div>
         <table>
           <Header headers={this.props.headers}
                   fields={this.props.fields}
                   sortingEnabled={!!this.props.sorting}
                   sortingOptions={this.state.sortingOptions}
-                  onSorting={this.sortBy}/>
+                  onSorting={this.sortBy}
+                  {...this.getSearchOptions()}
+          />
           <tbody>{this._showRecords(data)}</tbody>
         </table>
         <div className="smart-grid_footer">
@@ -151,7 +178,8 @@ SmartGrid.propTypes = {
   fields: PropTypes.arrayOf(PropTypes.string),
   idField: PropTypes.string.isRequired,
   sorting: PropTypes.oneOf([false, true, SORTING.SIMPLE, SORTING.COMPOUND]),
-  search: PropTypes.bool
+  search: PropTypes.oneOfType([PropTypes.bool, PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
+  onSelect: PropTypes.func
 };
 
 SmartGrid.defaultProps = {
