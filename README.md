@@ -1,6 +1,5 @@
 # react-smart-grid (legacy React < 16)
-I try to implement object-table with React
-
+Smart object table
 Features:
 - sorting (compound -> by multiple fields and simple)
 - pagination
