@@ -1,4 +1,4 @@
-# react-smart-grid
+# react-smart-grid (legacy React < 16)
 I try to implement object-table with React
 
 Features:
